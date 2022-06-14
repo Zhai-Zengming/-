@@ -1,0 +1,238 @@
+BL51 BANKED LINKER/LOCATER V6.22                                                        03/12/2022  16:10:34  PAGE 1
+
+
+BL51 BANKED LINKER/LOCATER V6.22, INVOKED BY:
+D:\KEIL5\INSTALLED FILE\C51\BIN\BL51.EXE .\Objects\main.obj TO .\Objects\uart PRINT (.\Listings\uart.m51) RAMSIZE (256)
+
+
+MEMORY MODEL: SMALL
+
+
+INPUT MODULES INCLUDED:
+  .\Objects\main.obj (MAIN)
+  D:\KEIL5\INSTALLED FILE\C51\LIB\C51S.LIB (?C_STARTUP)
+  D:\KEIL5\INSTALLED FILE\C51\LIB\C51S.LIB (?C?CLDPTR)
+  D:\KEIL5\INSTALLED FILE\C51\LIB\C51S.LIB (?C_INIT)
+
+
+LINK MAP OF MODULE:  .\Objects\uart (MAIN)
+
+
+            TYPE    BASE      LENGTH    RELOCATION   SEGMENT NAME
+            -----------------------------------------------------
+
+            * * * * * * *   D A T A   M E M O R Y   * * * * * * *
+            REG     0000H     0008H     ABSOLUTE     "REG BANK 0"
+            DATA    0008H     0001H     UNIT         ?DT?MAIN
+            IDATA   0009H     0001H     UNIT         ?STACK
+
+            * * * * * * *   C O D E   M E M O R Y   * * * * * * *
+            CODE    0000H     0003H     ABSOLUTE     
+                    0003H     0020H                  *** GAP ***
+            CODE    0023H     0003H     ABSOLUTE     
+                    0026H     07DAH                  *** GAP ***
+            CODE    0800H     008CH     UNIT         ?C_C51STARTUP
+            CODE    088CH     0046H     UNIT         ?CO?MAIN
+            CODE    08D2H     0036H     UNIT         ?PR?_EXECUTE_COMMAND?MAIN
+            CODE    0908H     0033H     UNIT         ?PR?_HC138_SELECT?MAIN
+            CODE    093BH     001BH     UNIT         ?PR?UART_INIT?MAIN
+            CODE    0956H     0019H     UNIT         ?C?LIB_CODE
+            CODE    096FH     0016H     UNIT         ?PR?MAIN?MAIN
+            CODE    0985H     0013H     UNIT         ?PR?_UART_SENDSTR?MAIN
+            CODE    0998H     0010H     UNIT         ?PR?SYSTEM_INIT?MAIN
+            CODE    09A8H     0009H     UNIT         ?PR?UART?MAIN
+            CODE    09B1H     0008H     UNIT         ?PR?_UART_SENDBYTE?MAIN
+            CODE    09B9H     0004H     UNIT         ?C_INITSEG
+
+
+
+OVERLAY MAP OF MODULE:   .\Objects\uart (MAIN)
+
+
+SEGMENT
+  +--> CALLED SEGMENT
+---------------------
+?C_C51STARTUP
+  +--> ?PR?MAIN?MAIN
+  +--> ?C_INITSEG
+
+?PR?MAIN?MAIN
+  +--> ?PR?SYSTEM_INIT?MAIN
+  +--> ?PR?UART_INIT?MAIN
+BL51 BANKED LINKER/LOCATER V6.22                                                      03/12/2022  16:10:34  PAGE 2
+
+
+  +--> ?CO?MAIN
+  +--> ?PR?_UART_SENDSTR?MAIN
+  +--> ?PR?_EXECUTE_COMMAND?MAIN
+
+?PR?SYSTEM_INIT?MAIN
+  +--> ?PR?_HC138_SELECT?MAIN
+
+?PR?_UART_SENDSTR?MAIN
+  +--> ?PR?_UART_SENDBYTE?MAIN
+
+?PR?_EXECUTE_COMMAND?MAIN
+  +--> ?CO?MAIN
+  +--> ?PR?_UART_SENDSTR?MAIN
+
+
+
+SYMBOL TABLE OF MODULE:  .\Objects\uart (MAIN)
+
+  VALUE           TYPE          NAME
+  ----------------------------------
+
+  -------         MODULE        MAIN
+  C:0000H         SYMBOL        _ICE_DUMMY_
+  D:0080H         PUBLIC        P0
+  D:0090H         PUBLIC        P1
+  D:00A0H         PUBLIC        P2
+  C:09B1H         PUBLIC        _uart_sendbyte
+  D:00B0H         PUBLIC        P3
+  D:00C0H         PUBLIC        P4
+  D:00C8H         PUBLIC        P5
+  B:00A8H.7       PUBLIC        EA
+  D:00E8H         PUBLIC        P6
+  D:00F8H         PUBLIC        P7
+  D:00A8H         PUBLIC        IE
+  B:00A8H.4       PUBLIC        ES
+  D:00B8H         PUBLIC        IP
+  B:0098H.0       PUBLIC        RI
+  B:0098H.1       PUBLIC        TI
+  D:00D8H         PUBLIC        CCON
+  C:096FH         PUBLIC        main
+  C:0985H         PUBLIC        _uart_sendstr
+  D:0099H         PUBLIC        SBUF
+  D:0098H         PUBLIC        SCON
+  D:0089H         PUBLIC        TMOD
+  D:0088H         PUBLIC        TCON
+  C:08D2H         PUBLIC        _execute_command
+  C:09A8H         PUBLIC        uart
+  C:0998H         PUBLIC        system_init
+  D:008EH         PUBLIC        AUXR
+  C:0908H         PUBLIC        _hc138_select
+  D:008DH         PUBLIC        TH1
+  D:008BH         PUBLIC        TL1
+  C:093BH         PUBLIC        uart_init
+  B:0088H.6       PUBLIC        TR1
+  D:0008H         PUBLIC        rcv_dat
+  D:00D0H         PUBLIC        PSW
+  -------         PROC          _HC138_SELECT
+BL51 BANKED LINKER/LOCATER V6.22                                                      03/12/2022  16:10:34  PAGE 3
+
+
+  D:0007H         SYMBOL        n
+  C:0908H         LINE#         12
+  C:0908H         LINE#         13
+  C:0908H         LINE#         14
+  C:0917H         LINE#         15
+  C:0917H         LINE#         16
+  C:0917H         LINE#         17
+  C:0920H         LINE#         18
+  C:0920H         LINE#         19
+  C:0929H         LINE#         20
+  C:0929H         LINE#         21
+  C:0932H         LINE#         22
+  C:0932H         LINE#         23
+  C:093AH         LINE#         24
+  C:093AH         LINE#         25
+  -------         ENDPROC       _HC138_SELECT
+  -------         PROC          SYSTEM_INIT
+  C:0998H         LINE#         28
+  C:0998H         LINE#         29
+  C:0998H         LINE#         30
+  C:099DH         LINE#         31
+  C:09A0H         LINE#         32
+  C:09A4H         LINE#         33
+  C:09A7H         LINE#         34
+  -------         ENDPROC       SYSTEM_INIT
+  -------         PROC          UART_INIT
+  C:093BH         LINE#         36
+  C:093BH         LINE#         37
+  C:093BH         LINE#         38
+  C:0943H         LINE#         39
+  C:0946H         LINE#         40
+  C:0949H         LINE#         41
+  C:094BH         LINE#         43
+  C:094EH         LINE#         44
+  C:0950H         LINE#         45
+  C:0952H         LINE#         46
+  C:0955H         LINE#         47
+  -------         ENDPROC       UART_INIT
+  -------         PROC          _UART_SENDBYTE
+  D:0007H         SYMBOL        dat
+  C:09B1H         LINE#         49
+  C:09B1H         LINE#         50
+  C:09B1H         LINE#         51
+  C:09B3H         LINE#         52
+  C:09B6H         LINE#         53
+  C:09B8H         LINE#         54
+  -------         ENDPROC       _UART_SENDBYTE
+  -------         PROC          _UART_SENDSTR
+  D:0001H         SYMBOL        str
+  C:0985H         LINE#         56
+  C:0985H         LINE#         57
+  C:0985H         LINE#         58
+  C:098BH         LINE#         59
+  C:098BH         LINE#         60
+  C:098EH         LINE#         61
+  C:0995H         LINE#         62
+  C:0997H         LINE#         63
+BL51 BANKED LINKER/LOCATER V6.22                                                      03/12/2022  16:10:34  PAGE 4
+
+
+  -------         ENDPROC       _UART_SENDSTR
+  -------         PROC          _EXECUTE_COMMAND
+  D:0007H         SYMBOL        command
+  C:08D2H         LINE#         67
+  C:08D2H         LINE#         68
+  C:08D2H         LINE#         69
+  C:08E1H         LINE#         70
+  C:08E1H         LINE#         71
+  C:08E1H         LINE#         72
+  C:08EAH         LINE#         73
+  C:08EAH         LINE#         74
+  C:08ECH         LINE#         76
+  C:08ECH         LINE#         77
+  C:08F9H         LINE#         78
+  C:08F9H         LINE#         79
+  C:08FBH         LINE#         81
+  C:08FBH         LINE#         82
+  C:0904H         LINE#         83
+  C:0907H         LINE#         84
+  C:0907H         LINE#         85
+  C:0907H         LINE#         86
+  -------         ENDPROC       _EXECUTE_COMMAND
+  -------         PROC          MAIN
+  C:096FH         LINE#         88
+  C:096FH         LINE#         89
+  C:096FH         LINE#         90
+  C:0972H         LINE#         91
+  C:0975H         LINE#         92
+  C:097EH         LINE#         94
+  C:097EH         LINE#         95
+  C:097EH         LINE#         96
+  C:0983H         LINE#         97
+  -------         ENDPROC       MAIN
+  -------         PROC          UART
+  C:09A8H         LINE#         100
+  C:09A8H         LINE#         102
+  C:09ABH         LINE#         103
+  C:09ABH         LINE#         104
+  C:09AEH         LINE#         105
+  C:09B0H         LINE#         106
+  C:09B0H         LINE#         107
+  -------         ENDPROC       UART
+  -------         ENDMOD        MAIN
+
+  -------         MODULE        ?C?CLDPTR
+  C:0956H         PUBLIC        ?C?CLDPTR
+  -------         ENDMOD        ?C?CLDPTR
+
+******************************************************************************
+* RESTRICTED VERSION WITH 0800H BYTE CODE SIZE LIMIT; USED: 011AH BYTE (13%) *
+******************************************************************************
+
+Program Size: data=10.0 xdata=0 code=451
+LINK/LOCATE RUN COMPLETE.  0 WARNING(S),  0 ERROR(S)

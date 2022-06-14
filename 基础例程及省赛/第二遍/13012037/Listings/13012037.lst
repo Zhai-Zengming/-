@@ -1,0 +1,314 @@
+C51 COMPILER V9.54   13012037                                                              05/11/2022 16:48:51 PAGE 1   
+
+
+C51 COMPILER V9.54, COMPILATION OF MODULE 13012037
+OBJECT MODULE PLACED IN .\Objects\13012037.obj
+COMPILER INVOKED BY: D:\Keil5\installed file\C51\BIN\C51.EXE 13012037.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRIN
+                    -T(.\Listings\13012037.lst) OBJECT(.\Objects\13012037.obj)
+
+line level    source
+
+   1          #include <STC15F2K60S2.H>
+   2          #include "iic.h"
+   3          #include "onewire.h"
+   4          
+   5          float v_dat;
+   6          u8 temp_buf = 0;
+   7          u8 settemp = 25;
+   8          u8 templ, temph;
+   9          u16 temp;
+  10          u8 s4_flag = 0, s5_flag = 0;
+  11          u8 code t_display[]={                       //标准字库
+  12          //   0    1    2    3    4    5    6    7    8    9    A    B    C    D    E    F
+  13              0x3F,0x06,0x5B,0x4F,0x66,0x6D,0x7D,0x07,0x7F,0x6F,0x77,0x7C,0x39,0x5E,0x79,0x71,
+  14          //black  -     H    J    K    L    N    o   P    U     t    G    Q    r   M    y
+  15              0x00,0x40,0x76,0x1E,0x70,0x38,0x37,0x5C,0x73,0x3E,0x78,0x3d,0x67,0x50,0x37,0x6e};
+  16          u8 code dot_display[]={0xBF,0x86,0xDB,0xCF,0xE6,0xED,0xFD,0x87,0xFF,0xEF,0x46};    //0. 1. 2. 3. 4. 5. 6. 
+             -7. 8. 9. -1
+  17          
+  18          void smgshow();
+  19          
+  20          
+  21          void hc138_select(u8 n)
+  22          {
+  23   1              switch(n)
+  24   1              {
+  25   2                      case 4:
+  26   2                              P2 = P2 & 0x1f | 0x80;  break;
+  27   2                      case 5:
+  28   2                              P2 = P2 & 0x1f | 0xa0;  break;
+  29   2                      case 6:
+  30   2                              P2 = P2 & 0x1f | 0xc0;  break;
+  31   2                      case 7:
+  32   2                              P2 = P2 & 0x1f | 0xe0;  break;
+  33   2              }
+  34   1      }
+  35          
+  36          void smg_delay()
+  37          {
+  38   1              u8 t = 100;
+  39   1              while(t--);
+  40   1      }
+  41          
+  42          void delay(u16 t)
+  43          {
+  44   1              while(t--)
+  45   1                      smgshow();
+  46   1      }
+  47          
+  48          void smgshow_bit(u8 pos, u8 dat)
+  49          {
+  50   1              hc138_select(6);
+  51   1              P0 = 1 << pos;
+  52   1              hc138_select(7);
+  53   1              P0 = dat;
+C51 COMPILER V9.54   13012037                                                              05/11/2022 16:48:51 PAGE 2   
+
+  54   1              smg_delay();
+  55   1              P0 = 0xff;
+  56   1      }
+  57          
+  58          void get_temp_init()
+  59          {
+  60   1              do{
+  61   2                      init_ds18b20();
+  62   2                      Write_DS18B20(0xcc);
+  63   2                      Write_DS18B20(0x44);
+  64   2      //              delay(20);
+  65   2                      init_ds18b20();
+  66   2                      Write_DS18B20(0xcc);
+  67   2                      Write_DS18B20(0xbe);
+  68   2                      
+  69   2                      templ = Read_DS18B20();
+  70   2                      temph = Read_DS18B20();
+  71   2                      temp = temph;
+  72   2                      temp = (temp << 8) | templ;
+  73   2                      if((temp & 0xf800) == 0x0000){
+  74   3                              temp = (temp >> 4) * 100 + (temp & 0x000f) * 6.25;
+  75   3                      }
+  76   2              }while(temp == 8500);
+  77   1      }
+  78          
+  79          void get_temp()
+  80          {
+  81   1              init_ds18b20();
+  82   1              Write_DS18B20(0xcc);
+  83   1              Write_DS18B20(0x44);
+  84   1              delay(20);
+  85   1              init_ds18b20();
+  86   1              Write_DS18B20(0xcc);
+  87   1              Write_DS18B20(0xbe);
+  88   1              
+  89   1              templ = Read_DS18B20();
+  90   1              temph = Read_DS18B20();
+  91   1              temp = temph;
+  92   1              temp = (temp << 8) | templ;
+  93   1              if((temp & 0xf800) == 0x0000){
+  94   2                      temp = (temp >> 4) * 100 + (temp & 0x000f) * 6.25;
+  95   2              }
+  96   1      }
+  97          
+  98          void smgshow_temp()
+  99          {
+ 100   1              smgshow_bit(0, ~t_display[12]);
+ 101   1              smgshow_bit(4, ~t_display[temp / 1000]);
+ 102   1              smgshow_bit(5, ~dot_display[temp / 100 % 10]);
+ 103   1              smgshow_bit(6, ~t_display[temp / 10 % 10]);
+ 104   1              smgshow_bit(7, ~t_display[temp % 10]);
+ 105   1      }
+ 106          
+ 107          void smgshow_settemp()
+ 108          {
+ 109   1              smgshow_bit(0, ~t_display[24]);
+ 110   1              smgshow_bit(6, ~t_display[temp_buf / 10]);
+ 111   1              smgshow_bit(7, ~t_display[temp_buf % 10]);
+ 112   1      }
+ 113          
+ 114          void pcf8591_dac(u8 dat)
+ 115          {
+C51 COMPILER V9.54   13012037                                                              05/11/2022 16:48:51 PAGE 3   
+
+ 116   1              IIC_Start();
+ 117   1              IIC_SendByte(0x90);
+ 118   1              IIC_WaitAck();
+ 119   1              IIC_SendByte(0x40);
+ 120   1              IIC_WaitAck();
+ 121   1              
+ 122   1      //      IIC_Start();
+ 123   1              IIC_SendByte(dat);
+ 124   1              IIC_WaitAck();
+ 125   1              IIC_Stop();
+ 126   1      }
+ 127          
+ 128          void pcf8591_out()
+ 129          {
+ 130   1              if(s5_flag == 0){       //模式1
+ 131   2                      if(temp < (settemp * 100)){
+ 132   3                              v_dat = 0;
+ 133   3                              pcf8591_dac(0);
+ 134   3                      }else{
+ 135   3                              v_dat = 5;
+ 136   3                              pcf8591_dac(0xff);
+ 137   3                      }
+ 138   2              }else{                  //模式2
+ 139   2                      if(temp <= 2000){
+ 140   3                              v_dat = 1;
+ 141   3                              pcf8591_dac(51);                           //1V
+ 142   3                      }else if((temp > 2000) && (temp < 4000)){
+ 143   3                              v_dat = 0.0015 * temp - 2;
+ 144   3                              pcf8591_dac((u8)(v_dat * 51));             //线性
+ 145   3                      }else{
+ 146   3                              v_dat = 4;
+ 147   3                              pcf8591_dac(4 * 51);                       //4V
+ 148   3                      }
+ 149   2              }
+ 150   1      }
+ 151          
+ 152          void smgshow_volt()
+ 153          {
+ 154   1              smgshow_bit(0, ~t_display[10]);
+ 155   1              
+ 156   1              smgshow_bit(5, ~dot_display[(u16)(v_dat * 100) / 100]);
+ 157   1              smgshow_bit(6, ~t_display[(u16)(v_dat * 100) / 10 % 10]);
+ 158   1              smgshow_bit(7, ~t_display[(u16)(v_dat * 100) % 10]);
+ 159   1      }
+ 160          
+ 161          void smgshow()
+ 162          {
+ 163   1              if(s4_flag == 0)
+ 164   1                      smgshow_temp();
+ 165   1              if(s4_flag == 1)
+ 166   1                      smgshow_settemp();
+ 167   1              if(s4_flag == 2)
+ 168   1                      smgshow_volt();
+ 169   1      }
+ 170          
+ 171          void Delay10ms()                //@12.000MHz
+ 172          {
+ 173   1              unsigned char i, j;
+ 174   1      
+ 175   1              i = 117;
+ 176   1              j = 184;
+ 177   1              do
+C51 COMPILER V9.54   13012037                                                              05/11/2022 16:48:51 PAGE 4   
+
+ 178   1              {
+ 179   2                      while (--j);
+ 180   2              } while (--i);
+ 181   1      }
+ 182          
+ 183          void key_scan()
+ 184          {
+ 185   1              P30 = 1; P31 = 1; P32 = 0; P33 = 1;
+ 186   1              P34 = 1; P35 = 1; P42 = 1; P44 = 1;
+ 187   1              if(P44 == 0){
+ 188   2                      Delay10ms();
+ 189   2                      if(P44 == 0){                             //s5模式切换
+ 190   3                              while(P44 == 0){
+ 191   4                                      smgshow();
+ 192   4                              }
+ 193   3                              s5_flag = !s5_flag;
+ 194   3                      }
+ 195   2              }
+ 196   1              if((P42 == 0) && (s4_flag == 1)){                 //s9
+ 197   2                      Delay10ms();
+ 198   2                      if(P42 == 0){
+ 199   3                              while(P42 == 0){
+ 200   4                                      smgshow();
+ 201   4                              }
+ 202   3                              temp_buf++;
+ 203   3                      }
+ 204   2              }
+ 205   1              
+ 206   1              P30 = 1; P31 = 1; P32 = 1; P33 = 0;
+ 207   1              P34 = 1; P35 = 1; P42 = 1; P44 = 1;
+ 208   1              if(P44 == 0){                              //s4显示界面切换
+ 209   2                      Delay10ms();
+ 210   2                      if(P44 == 0){
+ 211   3                              while(P44 == 0){
+ 212   4                                      smgshow();
+ 213   4                              }
+ 214   3                              s4_flag++;
+ 215   3                              if(s4_flag == 3)
+ 216   3                                      s4_flag = 0;
+ 217   3                              if(s4_flag == 1)                   //进入参数设置界面将参数赋值给暂时参数
+ 218   3                                      temp_buf = settemp;
+ 219   3                              if(s4_flag == 2)                   //退出参数设置界面参数有效
+ 220   3                                      settemp = temp_buf;
+ 221   3                      }
+ 222   2              }
+ 223   1              if((P42 == 0) && (s4_flag == 1)){                 //s9
+ 224   2                      Delay10ms();
+ 225   2                      if(P42 == 0){
+ 226   3                              while(P42 == 0){
+ 227   4                                      smgshow();
+ 228   4                              }
+ 229   3                              temp_buf--;
+ 230   3                      }
+ 231   2              }
+ 232   1      }
+ 233          
+ 234          void led_work()
+ 235          {
+ 236   1              if(s5_flag == 0){
+ 237   2                      hc138_select(4);
+ 238   2                      P00 = 0;
+ 239   2              }else{
+C51 COMPILER V9.54   13012037                                                              05/11/2022 16:48:51 PAGE 5   
+
+ 240   2                      hc138_select(4);
+ 241   2                      P00 = 1;
+ 242   2              }
+ 243   1              if(s4_flag == 0){
+ 244   2                      hc138_select(4);
+ 245   2                      P01 = 0;
+ 246   2                      P02 = 1;
+ 247   2                      P03 = 1;
+ 248   2              }else if(s4_flag == 1){
+ 249   2                      hc138_select(4);
+ 250   2                      P01 = 1;
+ 251   2                      P02 = 0;
+ 252   2                      P03 = 1;
+ 253   2              }else{
+ 254   2                      hc138_select(4);
+ 255   2                      P01 = 1;
+ 256   2                      P02 = 1;
+ 257   2                      P03 = 0;
+ 258   2              }
+ 259   1      }
+ 260          
+ 261          void sys_init()
+ 262          {
+ 263   1              hc138_select(4);
+ 264   1              P0 = 0xff;
+ 265   1              hc138_select(5);
+ 266   1              P0 = 0x00;
+ 267   1      }
+ 268          
+ 269          void main()
+ 270          {
+ 271   1              sys_init();
+ 272   1              get_temp_init();
+ 273   1              while(1)
+ 274   1              {
+ 275   2                      get_temp();
+ 276   2                      key_scan();
+ 277   2                      pcf8591_out();
+ 278   2                      smgshow();
+ 279   2                      led_work();
+ 280   2              }
+ 281   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   1212    ----
+   CONSTANT SIZE    =     43    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     12       3
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

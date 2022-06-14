@@ -1,0 +1,203 @@
+BL51 BANKED LINKER/LOCATER V6.22                                                        03/10/2022  15:30:00  PAGE 1
+
+
+BL51 BANKED LINKER/LOCATER V6.22, INVOKED BY:
+D:\KEIL5\INSTALLED FILE\C51\BIN\BL51.EXE .\Objects\main.obj TO .\Objects\smg_dynamic PRINT (.\Listings\smg_dynamic.m51) 
+>> RAMSIZE (256)
+
+
+MEMORY MODEL: SMALL
+
+
+INPUT MODULES INCLUDED:
+  .\Objects\main.obj (MAIN)
+  D:\KEIL5\INSTALLED FILE\C51\LIB\C51S.LIB (?C_STARTUP)
+  D:\KEIL5\INSTALLED FILE\C51\LIB\C51S.LIB (?C_INIT)
+
+
+LINK MAP OF MODULE:  .\Objects\smg_dynamic (MAIN)
+
+
+            TYPE    BASE      LENGTH    RELOCATION   SEGMENT NAME
+            -----------------------------------------------------
+
+            * * * * * * *   D A T A   M E M O R Y   * * * * * * *
+            REG     0000H     0008H     ABSOLUTE     "REG BANK 0"
+            DATA    0008H     0002H     UNIT         _DATA_GROUP_
+            DATA    000AH     0001H     UNIT         ?DT?MAIN
+            IDATA   000BH     0001H     UNIT         ?STACK
+
+            * * * * * * *   C O D E   M E M O R Y   * * * * * * *
+            CODE    0000H     0003H     ABSOLUTE     
+                    0003H     07FDH                  *** GAP ***
+            CODE    0800H     008CH     UNIT         ?C_C51STARTUP
+            CODE    088CH     003FH     UNIT         ?PR?SHOWSMG?MAIN
+            CODE    08CBH     0033H     UNIT         ?PR?_HC138_SELECT?MAIN
+            CODE    08FEH     002EH     UNIT         ?PR?_SHOWSMG_BIT?MAIN
+            CODE    092CH     001BH     UNIT         ?PR?MAIN?MAIN
+            CODE    0947H     0017H     UNIT         ?PR?_DELAY?MAIN
+            CODE    095EH     0012H     UNIT         ?CO?MAIN
+            CODE    0970H     000FH     UNIT         ?PR?SMG_DELAY?MAIN
+            CODE    097FH     0009H     UNIT         ?PR?SYSTEM_INIT?MAIN
+            CODE    0988H     0004H     UNIT         ?C_INITSEG
+
+
+
+OVERLAY MAP OF MODULE:   .\Objects\smg_dynamic (MAIN)
+
+
+SEGMENT                          DATA_GROUP 
+  +--> CALLED SEGMENT          START    LENGTH
+----------------------------------------------
+?C_C51STARTUP                  -----    -----
+  +--> ?PR?MAIN?MAIN
+  +--> ?C_INITSEG
+
+?PR?MAIN?MAIN                  -----    -----
+  +--> ?PR?SYSTEM_INIT?MAIN
+  +--> ?PR?SHOWSMG?MAIN
+  +--> ?PR?_DELAY?MAIN
+
+?PR?SYSTEM_INIT?MAIN           -----    -----
+BL51 BANKED LINKER/LOCATER V6.22                                                      03/10/2022  15:30:00  PAGE 2
+
+
+  +--> ?PR?_HC138_SELECT?MAIN
+
+?PR?SHOWSMG?MAIN               -----    -----
+  +--> ?PR?_SHOWSMG_BIT?MAIN
+
+?PR?_SHOWSMG_BIT?MAIN          -----    -----
+  +--> ?PR?_HC138_SELECT?MAIN
+  +--> ?CO?MAIN
+  +--> ?PR?SMG_DELAY?MAIN
+
+?PR?_DELAY?MAIN                0008H    0002H
+  +--> ?PR?SHOWSMG?MAIN
+
+
+
+SYMBOL TABLE OF MODULE:  .\Objects\smg_dynamic (MAIN)
+
+  VALUE           TYPE          NAME
+  ----------------------------------
+
+  -------         MODULE        MAIN
+  C:0000H         SYMBOL        _ICE_DUMMY_
+  D:0080H         PUBLIC        P0
+  D:0090H         PUBLIC        P1
+  D:00A0H         PUBLIC        P2
+  D:00B0H         PUBLIC        P3
+  D:00E8H         PUBLIC        P4
+  C:088CH         PUBLIC        showsmg
+  D:00A8H         PUBLIC        IE
+  C:095EH         PUBLIC        seg7_tab
+  C:0947H         PUBLIC        _delay
+  D:00B8H         PUBLIC        IP
+  C:092CH         PUBLIC        main
+  D:000AH         PUBLIC        month
+  C:08FEH         PUBLIC        _showsmg_bit
+  D:0098H         PUBLIC        SCON
+  D:0088H         PUBLIC        TCON
+  C:0970H         PUBLIC        smg_delay
+  C:097FH         PUBLIC        system_init
+  C:08CBH         PUBLIC        _hc138_select
+  D:00C8H         PUBLIC        T2CON
+  D:00D0H         PUBLIC        PSW
+  -------         PROC          _DELAY
+  D:0008H         SYMBOL        t
+  C:0947H         LINE#         18
+  C:094BH         LINE#         19
+  C:094BH         LINE#         20
+  C:0958H         LINE#         21
+  C:0958H         LINE#         22
+  C:095BH         LINE#         23
+  C:095DH         LINE#         24
+  -------         ENDPROC       _DELAY
+  -------         PROC          SMG_DELAY
+  -------         DO            
+  D:0006H         SYMBOL        tt
+  -------         ENDDO         
+  C:0970H         LINE#         26
+BL51 BANKED LINKER/LOCATER V6.22                                                      03/10/2022  15:30:00  PAGE 3
+
+
+  C:0970H         LINE#         27
+  C:0970H         LINE#         28
+  C:0974H         LINE#         29
+  C:097EH         LINE#         30
+  -------         ENDPROC       SMG_DELAY
+  -------         PROC          _HC138_SELECT
+  D:0007H         SYMBOL        n
+  C:08CBH         LINE#         32
+  C:08CBH         LINE#         33
+  C:08CBH         LINE#         34
+  C:08DAH         LINE#         35
+  C:08DAH         LINE#         36
+  C:08DAH         LINE#         37
+  C:08E3H         LINE#         38
+  C:08E3H         LINE#         39
+  C:08ECH         LINE#         40
+  C:08ECH         LINE#         41
+  C:08F5H         LINE#         42
+  C:08F5H         LINE#         43
+  C:08FDH         LINE#         44
+  C:08FDH         LINE#         45
+  -------         ENDPROC       _HC138_SELECT
+  -------         PROC          SYSTEM_INIT
+  C:097FH         LINE#         47
+  C:097FH         LINE#         48
+  C:097FH         LINE#         49
+  C:0984H         LINE#         50
+  C:0987H         LINE#         51
+  -------         ENDPROC       SYSTEM_INIT
+  -------         PROC          _SHOWSMG_BIT
+  D:0006H         SYMBOL        pos
+  D:0005H         SYMBOL        dat
+  C:08FEH         LINE#         53
+  C:0900H         LINE#         54
+  C:0900H         LINE#         55
+  C:0905H         LINE#         56
+  C:0914H         LINE#         57
+  C:0919H         LINE#         58
+  C:0920H         LINE#         59
+  C:0923H         LINE#         60
+  C:0928H         LINE#         61
+  C:092BH         LINE#         62
+  -------         ENDPROC       _SHOWSMG_BIT
+  -------         PROC          SHOWSMG
+  C:088CH         LINE#         64
+  C:088CH         LINE#         65
+  C:088CH         LINE#         66
+  C:0893H         LINE#         68
+  C:089AH         LINE#         70
+  C:08A1H         LINE#         72
+  C:08A6H         LINE#         74
+  C:08ADH         LINE#         76
+  C:08B2H         LINE#         78
+  C:08BEH         LINE#         80
+  -------         ENDPROC       SHOWSMG
+  -------         PROC          MAIN
+  C:092CH         LINE#         84
+BL51 BANKED LINKER/LOCATER V6.22                                                      03/10/2022  15:30:00  PAGE 4
+
+
+  C:092CH         LINE#         85
+  C:092CH         LINE#         86
+  C:092FH         LINE#         88
+  C:092FH         LINE#         89
+  C:092FH         LINE#         90
+  C:0932H         LINE#         91
+  C:0939H         LINE#         92
+  C:093BH         LINE#         93
+  C:0942H         LINE#         94
+  C:0945H         LINE#         95
+  -------         ENDPROC       MAIN
+  -------         ENDMOD        MAIN
+
+******************************************************************************
+* RESTRICTED VERSION WITH 0800H BYTE CODE SIZE LIMIT; USED: 00FFH BYTE (12%) *
+******************************************************************************
+
+Program Size: data=12.0 xdata=0 code=399
+LINK/LOCATE RUN COMPLETE.  0 WARNING(S),  0 ERROR(S)

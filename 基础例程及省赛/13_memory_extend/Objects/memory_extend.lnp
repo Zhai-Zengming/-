@@ -1,0 +1,3 @@
+".\Objects\main.obj" 
+TO ".\Objects\memory_extend" 
+PRINT(".\Listings\memory_extend.m51") RAMSIZE(256) 

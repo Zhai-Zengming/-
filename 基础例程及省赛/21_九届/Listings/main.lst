@@ -1,0 +1,434 @@
+C51 COMPILER V9.54   MAIN                                                                  03/17/2022 21:00:28 PAGE 1   
+
+
+C51 COMPILER V9.54, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN .\Objects\main.obj
+COMPILER INVOKED BY: D:\Keil5\installed file\C51\BIN\C51.EXE main.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\
+                    -Listings\main.lst) OBJECT(.\Objects\main.obj)
+
+line level    source
+
+   1          /*
+   2           * @brief : 第九届省赛
+   3           *
+   4           * @date  : 2022/3/17
+   5           */
+   6          
+   7          #include <STC15F2K60S2.H>
+   8          #include "iic.h"
+   9          #include <absacc.h>
+  10          
+  11          u8 mode;
+  12          u8 t1_800ms = 0, t1_800flag = 0;
+  13          u8 adc_dat = 0, duty = 0;
+  14          u8 mode_delay[4] = {8, 8, 8, 8};      //50ms * 8 = 400ms;
+  15          u8 mode_cnt[4] = {0}, mode_flag[4] = {0};
+  16          u8 t0_cnt = 0, t0_flag = 0;
+  17          u8 s7_flag = 0, s6_flag = 0, s5_flag = 0, s4_flag = 0;
+  18          
+  19          u8 code smg_display[]={                       //标准字库
+  20          //   0    1    2    3    4    5    6    7    8    9    A    B    C    D    E    F
+  21              0x3F,0x06,0x5B,0x4F,0x66,0x6D,0x7D,0x07,0x7F,0x6F,0x77,0x7C,0x39,0x5E,0x79,0x71,
+  22          //black  -     H    J    K    L    N    o   P    U     t    G    Q    r   M    y
+  23              0x00,0x40,0x76,0x1E,0x70,0x38,0x37,0x5C,0x73,0x3E,0x78,0x3d,0x67,0x50,0x37,0x6e,
+  24              0xBF,0x86,0xDB,0xCF,0xE6,0xED,0xFD,0x87,0xFF,0xEF,0x46};    //0. 1. 2. 3. 4. 5. 6. 7. 8. 9. -1
+  25          
+  26          void smgshow(void);
+  27          void mode4(void);
+  28          void mode3(void);
+  29          void mode2(void);
+  30          void mode1(void);
+  31          void key_scan(void);
+  32          
+  33          
+  34          void sys_init(void)
+  35          {
+  36   1              XBYTE[0x8000] = 0xff;
+  37   1              XBYTE[0xa000] = 0x00;
+  38   1              XBYTE[0xc000] = 0xff;
+  39   1              XBYTE[0xe000] = 0xff;
+  40   1      }
+  41          
+  42          void smg_delay(void)
+  43          {
+  44   1              u8 i = 70;
+  45   1              while(i--);
+  46   1      }
+  47          
+  48          void smgshow_bit(u8 pos, u8 dat)
+  49          {
+  50   1              XBYTE[0xc000] = 1 << pos;
+  51   1              XBYTE[0xe000] = dat;
+  52   1              smg_delay();
+  53   1              XBYTE[0xe000] = 0xff;
+  54   1      }
+C51 COMPILER V9.54   MAIN                                                                  03/17/2022 21:00:28 PAGE 2   
+
+  55          
+  56          void pcf8591_adc(void)
+  57          {
+  58   1              IIC_Start();
+  59   1              IIC_SendByte(0x90);
+  60   1              IIC_WaitAck();
+  61   1              IIC_SendByte(0x43);        //AIN3
+  62   1              IIC_WaitAck();
+  63   1              IIC_Stop();
+  64   1              
+  65   1              IIC_Start();
+  66   1              IIC_SendByte(0x91);
+  67   1              IIC_WaitAck();
+  68   1              adc_dat = IIC_RecByte();
+  69   1              IIC_SendAck(0);
+  70   1              IIC_Stop();
+  71   1              
+  72   1              if(adc_dat <= (255 / 4))
+  73   1              {
+  74   2                      duty = 25;
+  75   2              }
+  76   1              else if(adc_dat <= (255 / 2))
+  77   1              {
+  78   2                      duty = 50;
+  79   2              }
+  80   1              else if(adc_dat <= (255 * 3 / 4))
+  81   1              {
+  82   2                      duty = 75;
+  83   2              }
+  84   1              else if(adc_dat < 255)
+  85   1              {
+  86   2                      duty = 100;
+  87   2              }
+  88   1      }
+  89          
+  90          void write_eeprom(u8 pos, u8 dat)
+  91          {
+  92   1              IIC_Start();
+  93   1              IIC_SendByte(0x90);
+  94   1              IIC_WaitAck();
+  95   1              IIC_SendByte(pos);        //AIN3
+  96   1              IIC_WaitAck();
+  97   1              
+  98   1              IIC_SendByte(dat);
+  99   1              IIC_WaitAck();
+ 100   1              IIC_Stop();
+ 101   1      }
+ 102          
+ 103          /* tim0产生pwm, tim1定时50ms */
+ 104          void tim_init(void)
+ 105          {
+ 106   1              TMOD = 0x11;
+ 107   1              TH0 = (65535 - 100) / 256;
+ 108   1              TL0 = (65535 - 100) % 256;
+ 109   1              TH1 = (65535 - 50000) / 256;
+ 110   1              TL1 = (65535 - 50000) % 256;
+ 111   1              ET0 = 1;
+ 112   1              TR0 = 1;
+ 113   1              ET1 = 1;
+ 114   1              TR1 = 1;
+ 115   1              EA = 1;
+ 116   1      }
+C51 COMPILER V9.54   MAIN                                                                  03/17/2022 21:00:28 PAGE 3   
+
+ 117          
+ 118          void mode1(void)
+ 119          {
+ 120   1              u8 i = 0;
+ 121   1              mode = 1;
+ 122   1              for(i = 0; i < 8; i++)
+ 123   1              {
+ 124   2                      if(s7_flag)
+ 125   2                      {
+ 126   3                              XBYTE[0x8000] = ~(1 << i);
+ 127   3                              while(mode_flag[0] == 0)
+ 128   3                              {
+ 129   4                                      if(t0_flag == 1)
+ 130   4                                              XBYTE[0x8000] = ~(1 << i);
+ 131   4                                      smgshow();
+ 132   4                              }
+ 133   3                              mode_flag[0] = 0;
+ 134   3                      }
+ 135   2              }
+ 136   1      }
+ 137          
+ 138          void mode2(void)
+ 139          {
+ 140   1              u8 i = 0;
+ 141   1              mode = 2;
+ 142   1              for(i = 0; i < 8; i++)
+ 143   1              {
+ 144   2                      if(s7_flag)
+ 145   2                      {
+ 146   3                              XBYTE[0x8000] = ~(0x80 >> i);
+ 147   3                              while(mode_flag[1] == 0)
+ 148   3                              {
+ 149   4                                      if(t0_flag == 1)
+ 150   4                                              XBYTE[0x8000] = ~(0x80 >> i);
+ 151   4                                      smgshow();
+ 152   4                              }
+ 153   3                              mode_flag[1] = 0;
+ 154   3                      }
+ 155   2              }
+ 156   1      }
+ 157          
+ 158          void mode3(void)
+ 159          {
+ 160   1              u8 i = 0;
+ 161   1              mode = 3;
+ 162   1              for(i = 0; i < 4; i++)
+ 163   1              {
+ 164   2                      if(s7_flag)
+ 165   2                      {
+ 166   3                              XBYTE[0x8000] = (~(0x80 >> i)) & (~(1 << i));
+ 167   3                              while(mode_flag[2] == 0)
+ 168   3                              {
+ 169   4                                      if(t0_flag == 1)
+ 170   4                                              XBYTE[0x8000] = (~(0x80 >> i)) & (~(1 << i));
+ 171   4                                      smgshow();
+ 172   4                              }
+ 173   3                              mode_flag[2] = 0;
+ 174   3                      }
+ 175   2              }
+ 176   1      }
+ 177          
+ 178          void mode4(void)
+C51 COMPILER V9.54   MAIN                                                                  03/17/2022 21:00:28 PAGE 4   
+
+ 179          {
+ 180   1              u8 i = 0;
+ 181   1              mode = 4;
+ 182   1              for(i = 0; i < 4; i++)
+ 183   1              {
+ 184   2                      if(s7_flag)
+ 185   2                      {
+ 186   3                              XBYTE[0x8000] = (~(0x08 >> i)) & (~(0x10 << i));
+ 187   3                              while(mode_flag[3] == 0)
+ 188   3                              {
+ 189   4                                      if(t0_flag == 1)
+ 190   4                                              XBYTE[0x8000] = (~(0x08 >> i)) & (~(0x10 << i));
+ 191   4                                      smgshow();
+ 192   4                              }
+ 193   3                              mode_flag[3] = 0;
+ 194   3                      }
+ 195   2              }
+ 196   1      }
+ 197          
+ 198          void led_work(void)
+ 199          {
+ 200   1              if(s7_flag)
+ 201   1              {
+ 202   2                      mode1();
+ 203   2                      mode2();
+ 204   2                      mode3();
+ 205   2                      mode4();
+ 206   2              }
+ 207   1      }
+ 208          
+ 209          void smg_lightgrade(void)
+ 210          {
+ 211   1              smgshow_bit(6, ~smg_display[17]);
+ 212   1              smgshow_bit(7, ~smg_display[duty / 25]);   // 25/25=1 75/25=2 50/25=2 100/25=4 
+ 213   1      }
+ 214          
+ 215          void smg_mode(void)
+ 216          {
+ 217   1              smgshow_bit(0, ~smg_display[17]);
+ 218   1              smgshow_bit(1, ~smg_display[mode]);
+ 219   1              smgshow_bit(2, ~smg_display[17]);
+ 220   1              
+ 221   1              if((mode_delay[mode] * 50) > 999)
+ 222   1              {
+ 223   2                      smgshow_bit(4, ~smg_display[mode_delay[mode] * 50 / 1000]);
+ 224   2              }
+ 225   1              smgshow_bit(5, ~smg_display[mode_delay[mode] * 50 / 100]);
+ 226   1              smgshow_bit(6, ~smg_display[0]);
+ 227   1              smgshow_bit(7, ~smg_display[0]);
+ 228   1      }
+ 229          
+ 230          void Delay10ms()                //@11.0592MHz
+ 231          {
+ 232   1              unsigned char i, j;
+ 233   1      
+ 234   1              i = 108;
+ 235   1              j = 145;
+ 236   1              do
+ 237   1              {
+ 238   2                      while (--j);
+ 239   2              } while (--i);
+ 240   1      }
+C51 COMPILER V9.54   MAIN                                                                  03/17/2022 21:00:28 PAGE 5   
+
+ 241          
+ 242          void key_scan(void)
+ 243          {
+ 244   1              if(P30 == 0)
+ 245   1              {
+ 246   2                      Delay10ms();
+ 247   2                      if(P30 == 0)
+ 248   2                      {
+ 249   3                              while(P30 == 0)
+ 250   3                              {
+ 251   4      //                              led_work();
+ 252   4                              }
+ 253   3                              s7_flag = !s7_flag;
+ 254   3                      }
+ 255   2              }
+ 256   1              
+ 257   1              if(P31 == 0)
+ 258   1              {
+ 259   2                      Delay10ms();
+ 260   2                      if(P31 == 0)
+ 261   2                      {
+ 262   3                              while(P31 == 0)
+ 263   3                              {
+ 264   4      //                              led_work();
+ 265   4                              }
+ 266   3                              s6_flag++;
+ 267   3                              if(s6_flag == 3)
+ 268   3                              {
+ 269   4                                      s6_flag = 0;
+ 270   4                                      XBYTE[0xc000] = 0xff;
+ 271   4                                      XBYTE[0xe000] = 0xff;
+ 272   4      //                              write_eeprom(0x01, mode_delay[]);
+ 273   4                              }
+ 274   3                      }
+ 275   2              }
+ 276   1      }
+ 277          
+ 278          void smgshow(void)
+ 279          {
+ 280   1              if(s6_flag == 1)
+ 281   1              {
+ 282   2      //              smg_mode();
+ 283   2                      while(t1_800flag == 0)   //延时800ms
+ 284   2                      {
+ 285   3                              smg_mode();
+ 286   3      //                      led_work();
+ 287   3                      }
+ 288   2                      t1_800flag = 0;
+ 289   2                      
+ 290   2                      XBYTE[0xc000] = 0x07;
+ 291   2                      XBYTE[0xe000] = 0xff;
+ 292   2                      while(t1_800flag == 0)
+ 293   2                      {
+ 294   3                              smgshow_bit(0, ~smg_display[17]);
+ 295   3                              smgshow_bit(1, ~smg_display[mode]);
+ 296   3                              smgshow_bit(2, ~smg_display[17]);
+ 297   3                      }
+ 298   2                      t1_800flag = 0;
+ 299   2              }
+ 300   1              
+ 301   1              if(s6_flag == 2)
+ 302   1              {
+C51 COMPILER V9.54   MAIN                                                                  03/17/2022 21:00:28 PAGE 6   
+
+ 303   2      //              smg_mode();
+ 304   2                      while(t1_800flag == 0)   //延时800ms
+ 305   2                      {
+ 306   3                              smg_mode();
+ 307   3      //                      led_work();
+ 308   3                      }
+ 309   2                      t1_800flag = 0;
+ 310   2                      
+ 311   2                      XBYTE[0xc000] = 0xe0;
+ 312   2                      XBYTE[0xe000] = 0xff;
+ 313   2                      while(t1_800flag == 0)
+ 314   2                      {
+ 315   3                              if((mode_delay[mode] * 50) > 999)
+ 316   3                              {
+ 317   4                                      smgshow_bit(4, ~smg_display[mode_delay[mode] * 50 / 1000]);
+ 318   4                              }
+ 319   3                              smgshow_bit(5, ~smg_display[mode_delay[mode] * 50 / 100]);
+ 320   3                              smgshow_bit(6, ~smg_display[0]);
+ 321   3                              smgshow_bit(7, ~smg_display[0]);
+ 322   3                      }
+ 323   2                      t1_800flag = 0;
+ 324   2              }
+ 325   1      }
+ 326          
+ 327          void main()
+ 328          {
+ 329   1              sys_init();
+ 330   1              tim_init();
+ 331   1              while(1)
+ 332   1              {
+ 333   2                      led_work();
+ 334   2                      smgshow();
+ 335   2              }
+ 336   1      }
+ 337          
+ 338          
+ 339          void tim0() interrupt 1
+ 340          {
+ 341   1              TH0 = (65535 - 100) / 256;
+ 342   1              TL0 = (65535 - 100) % 256;
+ 343   1              
+ 344   1              key_scan();
+ 345   1              
+ 346   1              t0_cnt++;
+ 347   1              if(t0_cnt == 100)
+ 348   1                      t0_cnt = 0;
+ 349   1              if(t0_cnt < duty)
+ 350   1              {
+ 351   2                      t0_flag = 1;
+ 352   2              }
+ 353   1              else
+ 354   1              {
+ 355   2                      t0_flag = 0;
+ 356   2                      XBYTE[0x8000] = 0xff;
+ 357   2              }
+ 358   1      }
+ 359          
+ 360          void tim1() interrupt 3
+ 361          {
+ 362   1              TH1 = (65535 - 50000) / 256;
+ 363   1              TL1 = (65535 - 50000) % 256;
+ 364   1              mode_cnt[0]++;
+C51 COMPILER V9.54   MAIN                                                                  03/17/2022 21:00:28 PAGE 7   
+
+ 365   1              mode_cnt[1]++;
+ 366   1              mode_cnt[2]++;
+ 367   1              mode_cnt[3]++;
+ 368   1              t1_800ms++;
+ 369   1              if(mode_cnt[0] == mode_delay[0])
+ 370   1              {
+ 371   2                      mode_cnt[0] = 0;
+ 372   2                      mode_flag[0] = 1;
+ 373   2                      pcf8591_adc();
+ 374   2              }
+ 375   1              if(mode_cnt[1] == mode_delay[1])
+ 376   1              {
+ 377   2                      mode_cnt[1] = 0;
+ 378   2                      mode_flag[1] = 1;
+ 379   2              }
+ 380   1              if(mode_cnt[2] == mode_delay[2])
+ 381   1              {
+ 382   2                      mode_cnt[2] = 0;
+ 383   2                      mode_flag[2] = 1;
+ 384   2              }
+ 385   1              if(mode_cnt[3] == mode_delay[3])
+ 386   1              {
+ 387   2                      mode_cnt[3] = 0;
+ 388   2                      mode_flag[3] = 1;
+ 389   2              }
+ 390   1              if(t1_800ms == 16)    //16*50=800ms
+ 391   1              {
+ 392   2                      t1_800flag = 1;
+ 393   2              }
+ 394   1      }
+ 395          
+ 396          
+ 397          
+ 398          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   1215    ----
+   CONSTANT SIZE    =     43    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     23       6
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

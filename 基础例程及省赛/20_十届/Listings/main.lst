@@ -1,0 +1,347 @@
+C51 COMPILER V9.54   MAIN                                                                  03/17/2022 13:39:12 PAGE 1   
+
+
+C51 COMPILER V9.54, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN .\Objects\main.obj
+COMPILER INVOKED BY: D:\Keil5\installed file\C51\BIN\C51.EXE main.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\
+                    -Listings\main.lst) OBJECT(.\Objects\main.obj)
+
+line level    source
+
+   1          /*
+   2           * @brief : 第十届省赛
+   3           *
+   4           * @date  : 2022/3/16
+   5           */
+   6          
+   7          #include <STC15F2K60S2.H>
+   8          #include "iic.h"
+   9          
+  10          float rb2_udat, adc_dat;
+  11          u16 pulse;
+  12          u16 t0_cnt = 0;
+  13          u16 t1_cnt = 0;
+  14          
+  15          u8 code smg_display[]={                       //标准字库
+  16          //   0    1    2    3    4    5    6    7    8    9    A    B    C    D    E    F
+  17              0x3F,0x06,0x5B,0x4F,0x66,0x6D,0x7D,0x07,0x7F,0x6F,0x77,0x7C,0x39,0x5E,0x79,0x71,
+  18          //black  -     H    J    K    L    N    o   P    U     t    G    Q    r   M    y
+  19              0x00,0x40,0x76,0x1E,0x70,0x38,0x37,0x5C,0x73,0x3E,0x78,0x3d,0x67,0x50,0x37,0x6e};
+  20          
+  21          u8 code smgdot_display[] = {0xBF,0x86,0xDB,0xCF,0xE6,0xED,0xFD,0x87,0xFF,0xEF,0x46};    //0. 1. 2. 3. 4. 5
+             -. 6. 7. 8. 9. -1
+  22              
+  23          void smgshow(void);
+  24          
+  25          
+  26          void hc138_select(u8 n)
+  27          {
+  28   1              switch(n)
+  29   1              {
+  30   2                      case 4:
+  31   2                              P2 = ((P2 & 0x1f) | 0x80);  break;
+  32   2                      case 5:
+  33   2                              P2 = ((P2 & 0x1f) | 0xa0);  break;
+  34   2                      case 6:
+  35   2                              P2 = ((P2 & 0x1f) | 0xc0);  break;
+  36   2                      case 7:
+  37   2                              P2 = ((P2 & 0x1f) | 0xe0);  break;
+  38   2              }
+  39   1      }
+  40          
+  41          void sys_init(void)
+  42          {
+  43   1              hc138_select(4);
+  44   1              P0 = 0xff;
+  45   1              hc138_select(5);
+  46   1              P0 = 0x00;
+  47   1      }
+  48          
+  49          void smg_delay()
+  50          {
+  51   1              u8 i = 100;
+  52   1              while(i--);
+  53   1      }
+C51 COMPILER V9.54   MAIN                                                                  03/17/2022 13:39:12 PAGE 2   
+
+  54          
+  55          void smgshow_bit(u8 pos, u8 dat)
+  56          {
+  57   1              hc138_select(6);
+  58   1              P0 = 1 << pos;
+  59   1              hc138_select(7);
+  60   1              P0 = dat;
+  61   1              smg_delay();
+  62   1              P0 = 0xff;
+  63   1      }
+  64          
+  65          void pcf8591_adc(u8 addr)
+  66          {
+  67   1              IIC_Start();
+  68   1              IIC_SendByte(0x90);
+  69   1              IIC_WaitAck();
+  70   1              IIC_SendByte(addr);
+  71   1              IIC_WaitAck();
+  72   1              IIC_Stop();
+  73   1              
+  74   1              IIC_Start();
+  75   1              IIC_SendByte(0x91);
+  76   1              IIC_WaitAck();
+  77   1              adc_dat = IIC_RecByte();
+  78   1              IIC_SendAck(0);
+  79   1              IIC_Stop();
+  80   1              
+  81   1              rb2_udat = (adc_dat * 500) / 255;   //扩大100倍
+  82   1      }
+  83          
+  84          void smgshow_rb2(void)
+  85          {
+  86   1              smgshow_bit(0, ~smg_display[25]);
+  87   1              smgshow_bit(5, ~smgdot_display[(int)rb2_udat / 100]);
+  88   1              smgshow_bit(6, ~smg_display[(int)rb2_udat / 10 % 10]);
+  89   1              smgshow_bit(7, ~smg_display[(int)rb2_udat % 10]);
+  90   1      }
+  91          
+  92          void pcf8591_dac(u8 dat)
+  93          {
+  94   1              IIC_Start();
+  95   1              IIC_SendByte(0x90);
+  96   1              IIC_WaitAck();
+  97   1              IIC_SendByte(0x40);
+  98   1              IIC_WaitAck();
+  99   1              IIC_SendByte(dat);
+ 100   1              IIC_WaitAck();
+ 101   1              IIC_Stop();
+ 102   1      }
+ 103          
+ 104          void tim_init(void)
+ 105          {
+ 106   1              TMOD = 0x16;
+ 107   1              TH1 = (65535 - 50000) / 255;
+ 108   1              TL1 = (65535 - 50000) % 255;
+ 109   1              ET1 = 1;
+ 110   1              TR1 = 1;
+ 111   1              
+ 112   1              TH0 = 0xff;
+ 113   1              TL0 = 0xff;
+ 114   1              ET0 = 1;
+ 115   1              TR0 = 1;
+C51 COMPILER V9.54   MAIN                                                                  03/17/2022 13:39:12 PAGE 3   
+
+ 116   1              
+ 117   1              EA = 1;
+ 118   1      }
+ 119          
+ 120          void smgshow_pulse(void)
+ 121          {
+ 122   1              smgshow_bit(0, ~smg_display[15]);
+ 123   1              if(pulse > 9999)
+ 124   1              {
+ 125   2                      smgshow_bit(3, ~smg_display[pulse / 10000 % 10]);
+ 126   2              }
+ 127   1              if(pulse > 999)
+ 128   1              {
+ 129   2                      smgshow_bit(4, ~smg_display[pulse / 1000 % 10]);
+ 130   2              }
+ 131   1              if(pulse > 99)
+ 132   1              {
+ 133   2                      smgshow_bit(5, ~smg_display[pulse / 100 % 10]);
+ 134   2              }
+ 135   1              if(pulse > 9)
+ 136   1              {
+ 137   2                      smgshow_bit(6, ~smg_display[pulse / 10 % 10]);
+ 138   2              }
+ 139   1              smgshow_bit(7, ~smg_display[pulse % 10]);
+ 140   1      }
+ 141          
+ 142          void Delay10ms()                //@11.0592MHz
+ 143          {
+ 144   1              unsigned char i, j;
+ 145   1      
+ 146   1              i = 108;
+ 147   1              j = 145;
+ 148   1              do
+ 149   1              {
+ 150   2                      while (--j);
+ 151   2              } while (--i);
+ 152   1      }
+ 153          
+ 154          u8 s4_flag = 0, s5_flag = 0, s6_flag = 0, s7_flag = 0;
+ 155          void key_scan(void)
+ 156          {
+ 157   1              if(P33 == 0)              //切换smg界面
+ 158   1              {
+ 159   2                      Delay10ms();
+ 160   2                      if(P33 == 0)
+ 161   2                      {
+ 162   3                              while(P33 == 0)
+ 163   3                                      smgshow();
+ 164   3                              s4_flag++;
+ 165   3                              if(s4_flag == 2)
+ 166   3                                      s4_flag = 0;
+ 167   3                      }
+ 168   2              }
+ 169   1              
+ 170   1              if(P32 == 0)         //切换dac输出
+ 171   1              {
+ 172   2                      Delay10ms();
+ 173   2                      if(P32 == 0)
+ 174   2                      {
+ 175   3                              while(P32 == 0)
+ 176   3                                      smgshow();
+ 177   3                              s5_flag++;
+C51 COMPILER V9.54   MAIN                                                                  03/17/2022 13:39:12 PAGE 4   
+
+ 178   3                              if(s5_flag == 2)
+ 179   3                                      s5_flag = 0;
+ 180   3                      }
+ 181   2              }
+ 182   1              
+ 183   1              if(P31 == 0)              //控制LED开关
+ 184   1              {
+ 185   2                      Delay10ms();
+ 186   2                      if(P31 == 0)
+ 187   2                      {
+ 188   3                              while(P31 == 0)
+ 189   3                                      smgshow();
+ 190   3                              s6_flag = !s6_flag;
+ 191   3                              if(s6_flag)
+ 192   3                              {
+ 193   4                                      hc138_select(4);
+ 194   4                                      P0 = 0xff;
+ 195   4                              }
+ 196   3                      }
+ 197   2              }
+ 198   1              
+ 199   1              if(P30 == 0)         //控制SMG开关
+ 200   1              {
+ 201   2                      Delay10ms();
+ 202   2                      if(P30 == 0)
+ 203   2                      {
+ 204   3                              while(P30 == 0)
+ 205   3                                      smgshow();
+ 206   3                              s7_flag = !s7_flag;
+ 207   3                              if(s7_flag)
+ 208   3                              {
+ 209   4                                      hc138_select(6);
+ 210   4                                      P0 = 0xff;
+ 211   4                                      hc138_select(7);
+ 212   4                                      P0 = 0xff;
+ 213   4                              }
+ 214   3                      }
+ 215   2              }
+ 216   1      }
+ 217          
+ 218          void led_work(void)
+ 219          {
+ 220   1              if(s6_flag == 0)
+ 221   1              {
+ 222   2                      if(s4_flag == 1)   //测脉冲时，L1灭，L2亮
+ 223   2                      {
+ 224   3                              hc138_select(4);
+ 225   3                              P00 = 1;
+ 226   3                              P01 = 0;
+ 227   3                              if((pulse < 1000) || ((5000 <= pulse) && (pulse < 10000)))
+ 228   3                                      P03 = 1;
+ 229   3                              else
+ 230   3                                      P03 = 0;
+ 231   3                      }
+ 232   2                      
+ 233   2                      if(s4_flag == 0)   //测电压时，L1亮，L2灭
+ 234   2                      {
+ 235   3                              hc138_select(4);
+ 236   3                              P00 = 0;
+ 237   3                              P01 = 1;
+ 238   3                              hc138_select(4);
+ 239   3                              if(((rb2_udat / 100) < 1.5) || ((2.5 <= (rb2_udat / 100)) && ((rb2_udat / 100)< 3.5)))
+C51 COMPILER V9.54   MAIN                                                                  03/17/2022 13:39:12 PAGE 5   
+
+ 240   3                                      P02 = 1;
+ 241   3                              else
+ 242   3                                      P02 = 0;
+ 243   3                      }
+ 244   2                      
+ 245   2                      hc138_select(4);
+ 246   2                      if(s5_flag == 0)   //DAC输出2.0V时，L5 熄灭，DAC 输出跟随RB2变化时，L5 点亮。
+ 247   2                              P04 = 1;
+ 248   2                      else if(s5_flag == 1)
+ 249   2                              P04 = 0;
+ 250   2              }
+ 251   1      }
+ 252          
+ 253          
+ 254          void pcf8591_out(void)
+ 255          {
+ 256   1              if(s5_flag == 0)
+ 257   1                      pcf8591_dac(102);
+ 258   1              else if(s5_flag == 1)
+ 259   1                      pcf8591_dac((u8)adc_dat);
+ 260   1      }
+ 261          
+ 262          void smgshow(void)
+ 263          {
+ 264   1              if(s7_flag == 0)
+ 265   1              {
+ 266   2                      if(s4_flag == 1)
+ 267   2                              smgshow_pulse();
+ 268   2                      else
+ 269   2                      {
+ 270   3                              pcf8591_adc(0x43);
+ 271   3                              smgshow_rb2();
+ 272   3                      }
+ 273   2              }
+ 274   1      }
+ 275          
+ 276          
+ 277          
+ 278          
+ 279          void main()
+ 280          {
+ 281   1              sys_init();
+ 282   1              tim_init();
+ 283   1              while(1)
+ 284   1              {
+ 285   2                      key_scan();
+ 286   2                      pcf8591_out();
+ 287   2                      smgshow();
+ 288   2                      led_work();
+ 289   2              }
+ 290   1      }
+ 291          
+ 292          
+ 293          void tim0() interrupt 1
+ 294          {
+ 295   1              t0_cnt++;
+ 296   1      }
+ 297          
+ 298          void tim1() interrupt 3
+ 299          {
+ 300   1              TH1 = (65535 - 50000) / 255;
+ 301   1              TL1 = (65535 - 50000) % 255;
+C51 COMPILER V9.54   MAIN                                                                  03/17/2022 13:39:12 PAGE 6   
+
+ 302   1              t1_cnt++;
+ 303   1              if(t1_cnt == 20)
+ 304   1              {
+ 305   2                      t1_cnt = 0;
+ 306   2                      pulse = t0_cnt;
+ 307   2                      t0_cnt = 0;
+ 308   2              }
+ 309   1      }
+ 310          
+ 311          
+ 312          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   1080    ----
+   CONSTANT SIZE    =     43    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     18       2
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

@@ -1,0 +1,181 @@
+BL51 BANKED LINKER/LOCATER V6.22                                                        03/10/2022  12:59:12  PAGE 1
+
+
+BL51 BANKED LINKER/LOCATER V6.22, INVOKED BY:
+D:\KEIL5\INSTALLED FILE\C51\BIN\BL51.EXE .\Objects\main.obj TO .\Objects\beep_relay PRINT (.\Listings\beep_relay.m51) RA
+>> MSIZE (256)
+
+
+MEMORY MODEL: SMALL
+
+
+INPUT MODULES INCLUDED:
+  .\Objects\main.obj (MAIN)
+  D:\KEIL5\INSTALLED FILE\C51\LIB\C51S.LIB (?C_STARTUP)
+
+
+LINK MAP OF MODULE:  .\Objects\beep_relay (MAIN)
+
+
+            TYPE    BASE      LENGTH    RELOCATION   SEGMENT NAME
+            -----------------------------------------------------
+
+            * * * * * * *   D A T A   M E M O R Y   * * * * * * *
+            REG     0000H     0008H     ABSOLUTE     "REG BANK 0"
+            IDATA   0008H     0001H     UNIT         ?STACK
+
+            * * * * * * *   C O D E   M E M O R Y   * * * * * * *
+            CODE    0000H     0003H     ABSOLUTE     
+                    0003H     07FDH                  *** GAP ***
+            CODE    0800H     0062H     UNIT         ?PR?SYSTEM_WORK?MAIN
+            CODE    0862H     0033H     UNIT         ?PR?_HC138_SELECT?MAIN
+            CODE    0895H     001DH     UNIT         ?PR?_DELAY?MAIN
+            CODE    08B2H     000CH     UNIT         ?C_C51STARTUP
+            CODE    08BEH     0009H     UNIT         ?PR?SYSTEM_INIT?MAIN
+            CODE    08C7H     0008H     UNIT         ?PR?MAIN?MAIN
+
+
+
+OVERLAY MAP OF MODULE:   .\Objects\beep_relay (MAIN)
+
+
+SEGMENT
+  +--> CALLED SEGMENT
+---------------------
+?C_C51STARTUP
+  +--> ?PR?MAIN?MAIN
+
+?PR?MAIN?MAIN
+  +--> ?PR?SYSTEM_INIT?MAIN
+  +--> ?PR?SYSTEM_WORK?MAIN
+
+?PR?SYSTEM_INIT?MAIN
+  +--> ?PR?_HC138_SELECT?MAIN
+
+?PR?SYSTEM_WORK?MAIN
+  +--> ?PR?_HC138_SELECT?MAIN
+  +--> ?PR?_DELAY?MAIN
+
+
+
+SYMBOL TABLE OF MODULE:  .\Objects\beep_relay (MAIN)
+BL51 BANKED LINKER/LOCATER V6.22                                                      03/10/2022  12:59:12  PAGE 2
+
+
+
+  VALUE           TYPE          NAME
+  ----------------------------------
+
+  -------         MODULE        MAIN
+  C:0000H         SYMBOL        _ICE_DUMMY_
+  D:0080H         PUBLIC        P0
+  D:0090H         PUBLIC        P1
+  D:00A0H         PUBLIC        P2
+  D:00B0H         PUBLIC        P3
+  D:00E8H         PUBLIC        P4
+  D:00A8H         PUBLIC        IE
+  C:0899H         PUBLIC        _delay
+  D:00B8H         PUBLIC        IP
+  C:08C7H         PUBLIC        main
+  D:0098H         PUBLIC        SCON
+  B:0080H.4       PUBLIC        P04
+  D:0088H         PUBLIC        TCON
+  B:0080H.6       PUBLIC        P06
+  C:08BEH         PUBLIC        system_init
+  C:0862H         PUBLIC        _hc138_select
+  C:0800H         PUBLIC        system_work
+  D:00C8H         PUBLIC        T2CON
+  D:00D0H         PUBLIC        PSW
+  C:0895H         SYMBOL        L?0033
+  -------         PROC          L?0032
+  -------         ENDPROC       L?0032
+  C:0895H         SYMBOL        L?0033
+  -------         PROC          _DELAY
+  D:0006H         SYMBOL        t
+  -------         DO            
+  D:0004H         SYMBOL        i
+  -------         ENDDO         
+  C:0899H         LINE#         10
+  C:0899H         LINE#         11
+  C:0899H         LINE#         12
+  C:089DH         LINE#         13
+  C:08A7H         LINE#         14
+  C:08B1H         LINE#         15
+  -------         ENDPROC       _DELAY
+  -------         PROC          _HC138_SELECT
+  D:0007H         SYMBOL        n
+  C:0862H         LINE#         17
+  C:0862H         LINE#         18
+  C:0862H         LINE#         19
+  C:0871H         LINE#         20
+  C:0871H         LINE#         21
+  C:0871H         LINE#         22
+  C:087AH         LINE#         23
+  C:087AH         LINE#         24
+  C:0883H         LINE#         25
+  C:0883H         LINE#         26
+  C:088CH         LINE#         27
+  C:088CH         LINE#         28
+  C:0894H         LINE#         29
+  C:0894H         LINE#         30
+  -------         ENDPROC       _HC138_SELECT
+BL51 BANKED LINKER/LOCATER V6.22                                                      03/10/2022  12:59:12  PAGE 3
+
+
+  -------         PROC          SYSTEM_INIT
+  C:08BEH         LINE#         32
+  C:08BEH         LINE#         33
+  C:08BEH         LINE#         34
+  C:08C3H         LINE#         35
+  C:08C6H         LINE#         36
+  -------         ENDPROC       SYSTEM_INIT
+  -------         PROC          SYSTEM_WORK
+  -------         DO            
+  D:0003H         SYMBOL        i
+  -------         ENDDO         
+  C:0800H         LINE#         38
+  C:0800H         LINE#         39
+  C:0800H         LINE#         42
+  C:0805H         LINE#         43
+  C:0807H         LINE#         44
+  C:0807H         LINE#         45
+  C:080AH         LINE#         46
+  C:080DH         LINE#         47
+  C:0810H         LINE#         48
+  C:0813H         LINE#         49
+  C:0817H         LINE#         51
+  C:081CH         LINE#         52
+  C:081EH         LINE#         53
+  C:0820H         LINE#         54
+  C:0823H         LINE#         55
+  C:0825H         LINE#         56
+  C:0827H         LINE#         58
+  C:082CH         LINE#         59
+  C:082EH         LINE#         60
+  C:082EH         LINE#         61
+  C:083BH         LINE#         62
+  C:0842H         LINE#         63
+  C:0846H         LINE#         64
+  C:0848H         LINE#         65
+  C:0848H         LINE#         66
+  C:0856H         LINE#         67
+  C:085DH         LINE#         68
+  C:0861H         LINE#         69
+  -------         ENDPROC       SYSTEM_WORK
+  -------         PROC          MAIN
+  C:08C7H         LINE#         71
+  C:08C7H         LINE#         72
+  C:08C7H         LINE#         73
+  C:08CAH         LINE#         74
+  C:08CAH         LINE#         75
+  C:08CAH         LINE#         76
+  C:08CDH         LINE#         77
+  -------         ENDPROC       MAIN
+  -------         ENDMOD        MAIN
+
+******************************************************************************
+* RESTRICTED VERSION WITH 0800H BYTE CODE SIZE LIMIT; USED: 00C3H BYTE ( 9%) *
+******************************************************************************
+
+Program Size: data=9.0 xdata=0 code=210
+LINK/LOCATE RUN COMPLETE.  0 WARNING(S),  0 ERROR(S)

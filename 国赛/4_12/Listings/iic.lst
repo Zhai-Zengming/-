@@ -1,0 +1,120 @@
+C51 COMPILER V9.54   IIC                                                                   06/12/2022 16:52:59 PAGE 1   
+
+
+C51 COMPILER V9.54, COMPILATION OF MODULE IIC
+OBJECT MODULE PLACED IN .\Objects\iic.obj
+COMPILER INVOKED BY: D:\Keil5\installed file\C51\BIN\C51.EXE iic.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\L
+                    -istings\iic.lst) OBJECT(.\Objects\iic.obj)
+
+line level    source
+
+   1          #include "iic.h"
+   2          
+   3          #define DELAY_TIME 5
+   4          sbit SDA = P2^1;
+   5          sbit SCL = P2^0;
+   6          
+   7          //I2C总线内部延时函数
+   8          void IIC_Delay(unsigned char i)
+   9          {
+  10   1          do{_nop_();}
+  11   1          while(i--);        
+  12   1      }
+  13          
+  14          //I2C总线启动信号
+  15          void IIC_Start(void)
+  16          {
+  17   1          SDA = 1;
+  18   1          SCL = 1;
+  19   1          IIC_Delay(DELAY_TIME);
+  20   1          SDA = 0;
+  21   1          IIC_Delay(DELAY_TIME);
+  22   1          SCL = 0;    
+  23   1      }
+  24          
+  25          //I2C总线停止信号
+  26          void IIC_Stop(void)
+  27          {
+  28   1          SDA = 0;
+  29   1          SCL = 1;
+  30   1          IIC_Delay(DELAY_TIME);
+  31   1          SDA = 1;
+  32   1          IIC_Delay(DELAY_TIME);
+  33   1      }
+  34          
+  35          //发送应答或非应答信号
+  36          void IIC_SendAck(bit ackbit)
+  37          {
+  38   1          SCL = 0;
+  39   1          SDA = ackbit;                                       
+  40   1          IIC_Delay(DELAY_TIME);
+  41   1          SCL = 1;
+  42   1          IIC_Delay(DELAY_TIME);
+  43   1          SCL = 0; 
+  44   1          SDA = 1;
+  45   1          IIC_Delay(DELAY_TIME);
+  46   1      }
+  47          
+  48          //等待应答
+  49          bit IIC_WaitAck(void)
+  50          {
+  51   1          bit ackbit;
+  52   1              
+  53   1          SCL  = 1;
+  54   1          IIC_Delay(DELAY_TIME);
+C51 COMPILER V9.54   IIC                                                                   06/12/2022 16:52:59 PAGE 2   
+
+  55   1          ackbit = SDA;
+  56   1          SCL = 0;
+  57   1          IIC_Delay(DELAY_TIME);
+  58   1          return ackbit;
+  59   1      }
+  60          
+  61          //I2C总线发送一个字节数据
+  62          void IIC_SendByte(unsigned char byt)
+  63          {
+  64   1          unsigned char i;
+  65   1      
+  66   1          for(i=0; i<8; i++)
+  67   1          {
+  68   2              SCL  = 0;
+  69   2              IIC_Delay(DELAY_TIME);
+  70   2              if(byt & 0x80) SDA  = 1;
+  71   2              else SDA  = 0;
+  72   2              IIC_Delay(DELAY_TIME);
+  73   2              SCL = 1;
+  74   2              byt <<= 1;
+  75   2              IIC_Delay(DELAY_TIME);
+  76   2          }
+  77   1          SCL  = 0;  
+  78   1      }
+  79          
+  80          //I2C总线接收一个字节数据
+  81          unsigned char IIC_RecByte(void)
+  82          {
+  83   1          unsigned char i, da;
+  84   1          for(i=0; i<8; i++)
+  85   1          {   
+  86   2              SCL = 1;
+  87   2              IIC_Delay(DELAY_TIME);
+  88   2              da <<= 1;
+  89   2              if(SDA) da |= 1;
+  90   2              SCL = 0;
+  91   2              IIC_Delay(DELAY_TIME);
+  92   2          }
+  93   1          return da;    
+  94   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    152    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----       2
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

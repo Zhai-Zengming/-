@@ -1,0 +1,165 @@
+C51 COMPILER V9.54   MAIN                                                                  05/08/2022 09:30:15 PAGE 1   
+
+
+C51 COMPILER V9.54, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN .\Objects\main.obj
+COMPILER INVOKED BY: D:\Keil5\installed file\C51\BIN\C51.EXE main.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\
+                    -Listings\main.lst) OBJECT(.\Objects\main.obj)
+
+line level    source
+
+   1          /*
+   2           * @brief: AT24C02写读数据，将读出的数据修改后显示在数码管上
+   3           *
+   4           * @date : 2022/3/15
+   5           *
+   6           */
+   7          
+   8          
+   9          #include <STC15F2K60S2.H>
+  10          #include <absacc.h>
+  11          #include "iic.h"
+  12          
+  13          u8 dat1 = 0, dat2 = 0, dat3 = 0;
+  14          
+  15          u8 code smg_display[]={                       //标准字库
+  16          //   0    1    2    3    4    5    6    7    8    9    A    B    C    D    E    F
+  17              0x3F,0x06,0x5B,0x4F,0x66,0x6D,0x7D,0x07,0x7F,0x6F,0x77,0x7C,0x39,0x5E,0x79,0x71,
+  18          //black  -     H    J    K    L    N    o   P    U     t    G    Q    r   M    y
+  19              0x00,0x40,0x76,0x1E,0x70,0x38,0x37,0x5C,0x73,0x3E,0x78,0x3d,0x67,0x50,0x37,0x6e,
+  20              0xBF,0x86,0xDB,0xCF,0xE6,0xED,0xFD,0x87,0xFF,0xEF,0x46};    //0. 1. 2. 3. 4. 5. 6. 7. 8. 9. -1
+  21          
+  22          void Delay5ms()         //@11.0592MHz
+  23          {
+  24   1              unsigned char i, j;
+  25   1      
+  26   1              i = 54;
+  27   1              j = 199;
+  28   1              do
+  29   1              {
+  30   2                      while (--j);
+  31   2              } while (--i);
+  32   1      }
+  33          
+  34                  
+  35          void smg_delay(u16 t)
+  36          {
+  37   1              while(t--);
+  38   1      }
+  39                  
+  40          u8 read_eeprom(u8 addr)
+  41          {
+  42   1              u8 dat = 0;
+  43   1              
+  44   1              IIC_Start();
+  45   1              IIC_SendByte(0xa0);
+  46   1              IIC_WaitAck();
+  47   1              IIC_SendByte(addr);    //要读取AT24C02的内部存储地址
+  48   1              IIC_WaitAck();
+  49   1              
+  50   1              IIC_Start();
+  51   1              IIC_SendByte(0xa1);
+  52   1              IIC_WaitAck();
+  53   1              dat = IIC_RecByte();
+  54   1              IIC_SendAck(1);                 //非应答
+C51 COMPILER V9.54   MAIN                                                                  05/08/2022 09:30:15 PAGE 2   
+
+  55   1              IIC_Stop();
+  56   1              
+  57   1              return dat;
+  58   1      }
+  59          
+  60          void write_eeprom(u8 addr, u8 dat)
+  61          {
+  62   1              IIC_Start();
+  63   1              IIC_SendByte(0xa0);
+  64   1              IIC_WaitAck();
+  65   1              IIC_SendByte(addr);    //要写入AT24C02的内部存储地址
+  66   1              IIC_WaitAck();
+  67   1              IIC_SendByte(dat);
+  68   1              IIC_WaitAck();
+  69   1              IIC_Stop();
+  70   1      }
+  71          
+  72          
+  73          void read_write(void)
+  74          {
+  75   1              Delay5ms();
+  76   1              dat1 = read_eeprom(1);
+  77   1              Delay5ms();
+  78   1              dat2 = read_eeprom(2);
+  79   1              Delay5ms();
+  80   1              dat3 = read_eeprom(3);
+  81   1              Delay5ms();
+  82   1              
+  83   1              dat1 += 1;
+  84   1              dat2 += 1;
+  85   1              dat3 += 1;
+  86   1              
+  87   1              if(dat1 > 10)
+  88   1                      dat1 = 0;
+  89   1              if(dat2 > 10)
+  90   1                      dat2 = 0;
+  91   1              if(dat3 > 10)
+  92   1                      dat3 = 0;
+  93   1              
+  94   1              write_eeprom(1, dat1);
+  95   1              Delay5ms();
+  96   1              write_eeprom(2, dat2);
+  97   1              Delay5ms();
+  98   1              write_eeprom(3, dat3);
+  99   1              Delay5ms();
+ 100   1      }
+ 101          
+ 102          void smgshow_bit(u8 pos, u8 dat)
+ 103          {
+ 104   1              XBYTE[0xc000] = 1 << pos;
+ 105   1              XBYTE[0xe000] = dat;
+ 106   1              smg_delay(500);
+ 107   1              XBYTE[0xe000] = 0xff;
+ 108   1      }
+ 109          
+ 110          void smgshow_AT24C02(void)
+ 111          {
+ 112   1              smgshow_bit(0, ~smg_display[dat1 / 10]);
+ 113   1              smgshow_bit(1, ~smg_display[dat1 % 10]);
+ 114   1              
+ 115   1              smgshow_bit(2, ~smg_display[17]);
+ 116   1              
+C51 COMPILER V9.54   MAIN                                                                  05/08/2022 09:30:15 PAGE 3   
+
+ 117   1              smgshow_bit(3, ~smg_display[dat2 / 10]);
+ 118   1              smgshow_bit(4, ~smg_display[dat2 % 10]);
+ 119   1              
+ 120   1              smgshow_bit(5, ~smg_display[17]);
+ 121   1              
+ 122   1              smgshow_bit(6, ~smg_display[dat3 / 10]);
+ 123   1              smgshow_bit(7, ~smg_display[dat3 % 10]);
+ 124   1      }
+ 125          
+ 126          void main()
+ 127          {
+ 128   1              read_write();
+ 129   1              while(1)
+ 130   1              {
+ 131   2                      smgshow_AT24C02();
+ 132   2              }
+ 133   1      }
+ 134          
+ 135          
+ 136          
+ 137          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    363    ----
+   CONSTANT SIZE    =     43    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      3       4
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

@@ -1,0 +1,3 @@
+".\Objects\main.obj" 
+TO ".\Objects\beep_relay" 
+PRINT(".\Listings\beep_relay.m51") RAMSIZE(256) 

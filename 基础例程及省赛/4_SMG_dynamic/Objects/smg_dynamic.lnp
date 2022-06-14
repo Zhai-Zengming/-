@@ -1,0 +1,3 @@
+".\Objects\main.obj" 
+TO ".\Objects\smg_dynamic" 
+PRINT(".\Listings\smg_dynamic.m51") RAMSIZE(256) 
